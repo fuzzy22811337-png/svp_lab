@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 4.0)
-project(SiziesWeather2 LANGUAGES CXX)
+project(SiziesWeather3 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_AUTOMOC ON)
@@ -18,7 +18,7 @@ add_subdirectory(src/data/datasource)
 add_subdirectory(src/data/repository)
 add_subdirectory(src/ui)
 
-add_executable(SiziesWeather2 main.cpp)
+add_executable(SiziesWeather3 main.cpp)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
         Qt::Core
@@ -33,7 +33,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 
 add_subdirectory(tests)
 
-add_library(model_lib src/data/model/weather_model.cpp
+add_library(model_lib #src/data/model/weather_model.cpp
         src/data/model/weather_model.hpp)
 target_link_libraries(model_lib PRIVATE Qt6::Core)
 
@@ -49,11 +49,11 @@ target_link_libraries(data_lib PRIVATE Qt6::Core Qt6::Network model datasource)
 
 
 if (WIN32)
-    add_custom_command(TARGET SiziesWeather2 POST_BUILD
+    add_custom_command(TARGET SiziesWeather3 POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory
-        "$<TARGET_FILE_DIR:SiziesWeather2>/plugins/tls"
+        "$<TARGET_FILE_DIR:SiziesWeather3>/plugins/tls"
         COMMAND ${CMAKE_COMMAND} -E copy
         "$<TARGET_FILE_DIR:Qt6::Network>/../plugins/tls/qschannelbackend.dll"
-        "$<TARGET_FILE_DIR:SiziesWeather2>/plugins/tls/"
+        "$<TARGET_FILE_DIR:SiziesWeather3>/plugins/tls/"
     )
 endif()

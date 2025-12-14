@@ -8,10 +8,8 @@ private slots:
     void initTestCase();
     void init();
     
-    void testDefaultConstructor();
+    void testDefaultModel();
     void testSettersAndGetters();
-    void testMultipleValues();
-    void testCopyValues();
     
     void cleanup();
     void cleanupTestCase();

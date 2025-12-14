@@ -10,11 +10,11 @@ private slots:
     void init();
     
     void testConstructor();
+    void testIsMetric();
     void testSetApiKey();
     void testSetCityName();
-    void testIsMetric();
     void testSignals();
-    
+
     void cleanup();
     void cleanupTestCase();
 

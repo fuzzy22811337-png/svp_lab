@@ -15,8 +15,8 @@ WeatherInfoDialog::WeatherInfoDialog(const WeatherModel &weatherModel, bool isMe
     setupUI(weatherModel, isMetric);
 
     // Настройка окна
-    setWindowTitle("Информация о погоде");
-    setMinimumSize(500, 450);
+    setWindowTitle("Weather information");
+    setFixedSize(500, 580);
     setModal(false);
 }
 
@@ -28,9 +28,9 @@ void WeatherInfoDialog::setupUI(const WeatherModel &weatherModel, bool isMetric)
     mainLayout->setContentsMargins(30, 30, 30, 30);
 
     // Заголовок с указанием системы измерений
-    QString title = QString("Информация о погоде (%1)")
-                    .arg(isMetric ? "Метрическая система" : "Имперская система");
-    m_titleLabel = new QLabel(title, this);
+    QString title = QString("Weather information (%1)")
+                    .arg(isMetric ? "Metric system" : "Imperial system");
+    m_titleLabel = new QLabel(title);
     m_titleLabel->setStyleSheet("QLabel { font-size: 18px; font-weight: bold; color: #333; }");
     m_titleLabel->setAlignment(Qt::AlignCenter);
     mainLayout->addWidget(m_titleLabel);
@@ -38,16 +38,16 @@ void WeatherInfoDialog::setupUI(const WeatherModel &weatherModel, bool isMetric)
     // Разделитель
     m_separator = new QFrame();
     m_separator->setFrameShape(QFrame::HLine);
-    m_separator->setFrameShadow(QFrame::Sunken);
-    m_separator->setStyleSheet("background-color: #ccc;");
+    m_separator->setFrameShadow(QFrame::Plain);
+    m_separator->setStyleSheet("background-color: #333;");
     mainLayout->addWidget(m_separator);
 
     // Группа с погодной информацией
-    m_weatherGroupBox = new QGroupBox("Текущая погода", this);
+    m_weatherGroupBox = new QGroupBox("Current weather");
     QVBoxLayout *weatherLayout = new QVBoxLayout(m_weatherGroupBox);
     weatherLayout->setSpacing(15);
 
-    // Название города (не зависит от системы измерений)
+    // Название города
     m_cityLabel = new QLabel(weatherModel.getCityName(), m_weatherGroupBox);
     m_cityLabel->setStyleSheet(
         "QLabel {"
@@ -71,7 +71,7 @@ void WeatherInfoDialog::setupUI(const WeatherModel &weatherModel, bool isMetric)
         "   font-size: 42px;"
         "   font-weight: bold;"
         "   color: #e74c3c;"
-        "   padding: 15px 0;"
+        "   padding: 10px 0;"
         "   text-align: center;"
         "}"
     );
@@ -108,7 +108,7 @@ void WeatherInfoDialog::setupUI(const WeatherModel &weatherModel, bool isMetric)
     );
 
     QVBoxLayout *pressureLayout = new QVBoxLayout(pressureFrame);
-    QLabel *pressureTitle = new QLabel("Давление", pressureFrame);
+    QLabel *pressureTitle = new QLabel("Pressure", pressureFrame);
     pressureTitle->setStyleSheet(
         "QLabel {"
         "   font-size: 12px;"
@@ -118,7 +118,7 @@ void WeatherInfoDialog::setupUI(const WeatherModel &weatherModel, bool isMetric)
     );
 
     // Меняем только единицы давления
-    QString pressureUnit = isMetric ? " гПа" : " гПа";  // OpenWeather возвращает в hPa
+    QString pressureUnit = " hPa";  // OpenWeather возвращает в любой системе hPa
     m_pressureLabel = new QLabel(
         QString("%1%2").arg(weatherModel.getPressure(), 0, 'f', 1).arg(pressureUnit),
         pressureFrame
@@ -149,7 +149,7 @@ void WeatherInfoDialog::setupUI(const WeatherModel &weatherModel, bool isMetric)
     );
 
     QVBoxLayout *windLayout = new QVBoxLayout(windFrame);
-    QLabel *windTitle = new QLabel("Скорость ветра", windFrame);
+    QLabel *windTitle = new QLabel("Wind speed", windFrame);
     windTitle->setStyleSheet(
         "QLabel {"
         "   font-size: 12px;"
@@ -159,7 +159,7 @@ void WeatherInfoDialog::setupUI(const WeatherModel &weatherModel, bool isMetric)
     );
 
     // Меняем только единицы скорости ветра
-    QString windUnit = isMetric ? " м/с" : " миль/ч";
+    QString windUnit = isMetric ? " m/s" : " miles/h";
     m_windSpeedLabel = new QLabel(
         QString("%1%2").arg(weatherModel.getWindSpeed(), 0, 'f', 1).arg(windUnit),
         windFrame
@@ -182,11 +182,11 @@ void WeatherInfoDialog::setupUI(const WeatherModel &weatherModel, bool isMetric)
 
     mainLayout->addWidget(m_weatherGroupBox);
 
-    // Растягивающийся элемент
+    // Добавляем растягивающийся элемент
     mainLayout->addStretch();
 
     // Кнопка закрытия
-    m_closeButton = new QPushButton("Закрыть", this);
+    m_closeButton = new QPushButton("Close", this);
     m_closeButton->setMinimumHeight(40);
     m_closeButton->setStyleSheet(
         "QPushButton {"

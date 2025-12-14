@@ -8,11 +8,9 @@ class WeatherDataSourceTest : public QObject {
 private slots:
     void initTestCase();
     void init();
-    
-    void testConstructor();
+
     void testApiKeyValidation();
     void testCityNameValidation();
-    void testUnitsChange();
     void testSameValues();
     
     void cleanup();

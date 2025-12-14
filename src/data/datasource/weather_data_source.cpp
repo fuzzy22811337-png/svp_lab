@@ -1,6 +1,5 @@
 #include "weather_data_source.hpp"
 
-
 WeatherDataSource::WeatherDataSource(QObject *parent):
     QObject(parent),
     m_networkManager(new QNetworkAccessManager(this)) {
@@ -28,7 +27,7 @@ void WeatherDataSource::requestWeatherData() {
     }
 
     QString api_url = QString(
-        "https://api.openweathermap.org/data/2.5/weather?q=%1&units=%2&appid=%3&lang=ru"
+        "https://api.openweathermap.org/data/2.5/weather?q=%1&units=%2&appid=%3&lang=en"
     ).arg(m_cityName)
     .arg(m_units)
     .arg(m_apiKey);
@@ -40,45 +39,24 @@ void WeatherDataSource::requestWeatherData() {
 
     QNetworkRequest req(url);
 
-    /*// Отменяем предыдущий запрос, если он существует
-    if (m_currentReply) {
-        m_currentReply->abort();
-        m_currentReply->deleteLater();
-    }*/
-
     m_networkManager->get(req);
 }
 
 
 void WeatherDataSource::onWeatherDataReceived(QNetworkReply *reply) {
-    // Проверяем, тот ли это запрос, который мы ожидаем
-    /*if (reply != m_currentReply) {
-        reply->deleteLater();
-        qDebug() << "WeatherDataReceived reply received";
-        return;
-    }*/
+    handleServerReply(reply);
 
-    // Обрабатываем ответ сервера
-    handleServerResponse(reply);
-
-    // Очищаем reply
     cleanupReply(reply);
-
 }
 
 void WeatherDataSource::cleanupReply(QNetworkReply *reply) {
     if (m_currentReply) {
-
-        // Отменяем запрос, если он еще выполняется
         if (m_currentReply->isRunning()) {
             m_currentReply->abort();
         }
 
-        // Удаляем reply с отложенным удалением
         m_currentReply->deleteLater();
         m_currentReply = nullptr;
-
-        //qDebug() << "Reply cleaned up successfully";
     }
 }
 
@@ -92,7 +70,6 @@ void WeatherDataSource::setCityName(const QString &cityName) {
         return;
     }
 
-    // Валидация формата названия города
     if (!validateCityNameFormat(cityName))
         return;
 
@@ -133,8 +110,8 @@ void WeatherDataSource::setApiKey(const QString &apiKey)
 
 void WeatherDataSource::isMetric(bool isMetric) {
     isMetric ? m_units = "metric": m_units = "imperial";
-    emit weatherCityMessage(
-        QString("Units changed to %1 and already valid")
+    emit weatherDataMessage(
+        QString("Units of measurement: Units changed to %1 and already valid")
         .arg(m_units)
     );
 }

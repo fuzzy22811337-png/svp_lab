@@ -1,7 +1,6 @@
-#include "MainWindow.hpp"
-
+#include <QStatusBar>
 #include <QVBoxLayout>
-#include <QDebug>
+#include "MainWindow.hpp"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -12,7 +11,7 @@ MainWindow::MainWindow(QWidget *parent)
     // Настройка главного окна
     setWindowTitle("Weather Application");
     setCentralWidget(m_firstPage);
-    setMinimumSize(600, 500);
+    setMinimumSize(600, 780);
 
     // Настройка статус бара
     statusBar()->showMessage("Ready");
@@ -20,19 +19,16 @@ MainWindow::MainWindow(QWidget *parent)
     // Настройка соединений
     setupConnections();
 
-    // Начальное состояние
+    // Начальное состояние кнопки и надписи с ошибкой
     m_firstPage->enableWeatherRequestButton(false);
 }
 
 void MainWindow::setupConnections(){
     if (!m_firstPage || !m_repository) {
-        qWarning() << "MainWindow: Components not initialized";
         return;
     }
 
     // ========== FirstPage -> Repository ==========
-    // Пользователь вводит данные в FirstPage, они передаются в Repository
-
     connect(m_firstPage, &FirstPage::apiKeyChanged,
             m_repository, &Repository::setApiKey);
 
@@ -45,15 +41,17 @@ void MainWindow::setupConnections(){
     connect(m_firstPage, &FirstPage::requestWeatherData,
             m_repository, &Repository::fetchWeatherData);
 
-    // ========== Repository -> FirstPage ==========
-    // Repository валидирует данные и отправляет результаты в FirstPage
-
+    // ========== Repository -> MainWindow -> FirstPage ==========
     connect(m_repository, &Repository::apiKeyValidationResult,
             this, &MainWindow::onApiKeyValidationResult);
 
     connect(m_repository, &Repository::cityNameValidationResult,
             this, &MainWindow::onCityNameValidationResult);
 
+    connect(m_repository, &Repository::weatherErrorMessage,
+            this, &MainWindow::onWeatherErrorNetworkResult);
+
+    // ========== Repository -> MainWindow ==========
     connect(m_repository, &Repository::weatherDataReceivedSignal,
             this, &MainWindow::onWeatherDataReceived);
 
@@ -67,56 +65,34 @@ void MainWindow::setupConnections(){
             this, &MainWindow::onInfoMessage);
 }
 
-// ========== СЛОТЫ ДЛЯ ОБРАБОТКИ СИГНАЛОВ REPOSITORY ==========
-
 void MainWindow::onApiKeyValidationResult(bool isValid, const QString &message){
-    //qDebug() << "API Key validation result:" << isValid << message;
-
     m_apiKeyValid = isValid;
     m_firstPage->showApiKeyValidationMessage(message, isValid);
-
-    // Обновляем кнопку запроса погоды
-    m_firstPage->enableWeatherRequestButton(m_apiKeyValid && m_cityNameValid);
-
-    // Показываем в статус баре
-    statusBar()->showMessage(isValid ? "API key is valid" : "API key error");
 }
 
-void MainWindow::onCityNameValidationResult(bool isValid, const QString &message)
-{
-    //qDebug() << "City Name validation result:" << isValid << message;
-
+void MainWindow::onCityNameValidationResult(bool isValid, const QString &message){
     m_cityNameValid = isValid;
     m_firstPage->showCityNameValidationMessage(message, isValid);
-
-    // Обновляем кнопку запроса погоды
-    m_firstPage->enableWeatherRequestButton(m_apiKeyValid && m_cityNameValid);
-
-    // Показываем в статус баре
-    statusBar()->showMessage(isValid ? "City name is valid" : "City name error");
 }
 
-void MainWindow::onWeatherDataReceived(const WeatherModel &model)
-{
-    qDebug() << "Weather data received for city:" << model.getCityName();
+void MainWindow::onWeatherErrorNetworkResult(const QString &message) {
+    // Отображаем ошибку в FirstPage
+    m_firstPage->showNetworkError(message);
+}
 
+void MainWindow::onInfoMessage(const QString &message) {
+    statusBar()->showMessage(message);
+}
+
+void MainWindow::onWeatherDataReceived(const WeatherModel &model, bool isMetric){
     // Закрываем предыдущий диалог, если он открыт
     closeWeatherInfo();
 
-    // Получаем текущую систему измерений из FirstPage
-    bool isMetric = m_firstPage->isMetricSystem();
-
     // Показываем новую информацию о погоде с указанием системы измерений
     showWeatherInfo(model, isMetric);
-
-    // Обновляем статус бар
-    statusBar()->showMessage(
-        QString("Weather for %1 received").arg(model.getCityName())
-    );
 }
 
-void MainWindow::showWeatherInfo(const WeatherModel &model, bool isMetric)
-{
+void MainWindow::showWeatherInfo(const WeatherModel &model, bool isMetric) {
     // Создаем новый диалог, передавая информацию о системе измерений
     m_weatherDialog = new WeatherInfoDialog(model, isMetric, this);
 
@@ -134,43 +110,30 @@ void MainWindow::showWeatherInfo(const WeatherModel &model, bool isMetric)
 }
 
 
-void MainWindow::closeWeatherInfo()
-{
+void MainWindow::closeWeatherInfo() {
     if (m_weatherDialog) {
-        // Отключаем сигналы, чтобы не было двойного вызова
         m_weatherDialog->disconnect();
-
         // Закрываем и удаляем диалог
         m_weatherDialog->close();
         m_weatherDialog->deleteLater();
         m_weatherDialog = nullptr;
-
-        qDebug() << "Weather dialog closed";
     }
 }
 
-void MainWindow::onWeatherRequestStarted()
-{
-    //qDebug() << "Weather request started";
-
+void MainWindow::onWeatherRequestStarted() {
     m_firstPage->enableWeatherRequestButton(false);
     statusBar()->showMessage("Requesting weather data...");
-
 }
 
-void MainWindow::onWeatherRequestCompleted(bool success, const QString &message)
-{
-    //qDebug() << "Weather request completed:" << success << message;
+void MainWindow::onWeatherRequestCompleted(bool success, const QString &message) {
+    if (success) {
+        m_firstPage->enableWeatherRequestButton(m_apiKeyValid && m_cityNameValid);
+        statusBar()->showMessage(message);
+        statusBar()->showMessage("Weather request completed");
+        m_firstPage->clearNetworkError();
+    }else {
+        m_firstPage->enableWeatherRequestButton(m_apiKeyValid && m_cityNameValid);
+        statusBar()->showMessage(message);
+    }
 
-    m_firstPage->enableWeatherRequestButton(m_apiKeyValid && m_cityNameValid);
-    statusBar()->showMessage(message);
-
-    // Скрыть индикатор загрузки
-    //m_firstPage->showLoadingIndicator(false);
-}
-
-void MainWindow::onInfoMessage(const QString &message)
-{
-    //qDebug() << "Info message:" << message;
-    statusBar()->showMessage(message);
 }

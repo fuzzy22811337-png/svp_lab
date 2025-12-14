@@ -5,8 +5,6 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QGroupBox>
 #include <QRadioButton>
 #include <QButtonGroup>
 
@@ -16,23 +14,19 @@ public:
     explicit FirstPage(QWidget *parent = nullptr);
     ~FirstPage() override = default;
 
-    // Геттеры для получения введенных данных
-    QString getApiKey() const;
-    QString getCityName() const;
-    bool isMetricSystem() const;
+    void enableWeatherRequestButton(bool enable);
 
     // Методы для обновления UI
     void showApiKeyValidationMessage(const QString &message, bool isValid);
     void showCityNameValidationMessage(const QString &message, bool isValid);
-    void enableWeatherRequestButton(bool enable);
+    void showNetworkError(const QString &message);
+    void clearNetworkError();
 
 signals:
-    // Сигналы для взаимодействия с другими компонентами
     void apiKeyChanged(const QString &apiKey);
     void cityNameChanged(const QString &cityName);
-    void requestWeatherData();
     void unitsSystemChanged(bool isMetric);
-
+    void requestWeatherData();
 
 private slots:
     void onApiKeySaveClicked();
@@ -44,14 +38,12 @@ private:
     void setupUI();
     void setupConnections();
 
-    // UI элементы для API ключа
-    QLabel *m_apiKeyLabel;
+    // UI элементы для ввода API ключа
     QLineEdit *m_apiKeyLineEdit;
     QPushButton *m_apiKeySaveButton;
     QLabel *m_apiKeyMessageLabel;
 
-    // UI элементы для названия города
-    QLabel *m_cityNameLabel;
+    // UI элементы для ввода названия города
     QLineEdit *m_cityNameLineEdit;
     QPushButton *m_cityNameSaveButton;
     QLabel *m_cityNameMessageLabel;
@@ -61,12 +53,15 @@ private:
     QRadioButton *m_imperialRadioButton;
     QButtonGroup *m_unitsButtonGroup;
 
+    // Label для отображения ошибок сети  ← ДОБАВЛЯЕМ
+    QLabel *m_networkErrorLabel;
+
     // Кнопка запроса погоды
     QPushButton *m_requestWeatherButton;
 
     // Флаги валидации
-    bool m_apiKeyValid;
-    bool m_cityNameValid;
+    bool m_apiKeyValid = false;
+    bool m_cityNameValid = false;
 
     // Основные layout
     QVBoxLayout *m_mainLayout;

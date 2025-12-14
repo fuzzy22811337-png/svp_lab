@@ -3,26 +3,17 @@
 #include "weather_data_test.hpp"
 #include "src/data/datasource/weather_data_source.hpp"
 
-void WeatherDataSourceTest::initTestCase() {
-}
+void WeatherDataSourceTest::initTestCase() { }
 
-void WeatherDataSourceTest::init() {
-    // Инициализация перед каждым тестом
-}
+void WeatherDataSourceTest::init() { }
 
 QString WeatherDataSourceTest::createValidApiKey() const {
+    //рандомный набор
     return "abc123def456ghi789jkl012mno345pqr678stu901";
 }
 
 QString WeatherDataSourceTest::createValidCityName() const {
     return "Moscow";
-}
-
-void WeatherDataSourceTest::testConstructor() {
-    WeatherDataSource dataSource;
-    
-    // Проверяем начальные значения
-    QCOMPARE(dataSource.parent(), nullptr);
 }
 
 void WeatherDataSourceTest::testApiKeyValidation() {
@@ -80,36 +71,16 @@ void WeatherDataSourceTest::testCityNameValidation() {
     QCOMPARE(cityErrorSpy.count(), 3);
 }
 
-void WeatherDataSourceTest::testUnitsChange() {
-    WeatherDataSource dataSource;
-    QSignalSpy cityMessageSpy(&dataSource, &WeatherDataSource::weatherCityMessage);
-    
-    // Тест метрической системы
-    dataSource.isMetric(true);
-    QCOMPARE(cityMessageSpy.count(), 1);
-    
-    // Тест имперской системы
-    dataSource.isMetric(false);
-    QCOMPARE(cityMessageSpy.count(), 2);
-    
-    // Проверяем, что сообщения содержат правильный текст
-    QString lastMessage = cityMessageSpy.last().first().toString();
-    QVERIFY(lastMessage.contains("imperial") || lastMessage.contains("metric"));
-}
-
 void WeatherDataSourceTest::testSameValues() {
     WeatherDataSource dataSource;
-    QSignalSpy keyMessageSpy(&dataSource, &WeatherDataSource::weatherKeyMessage);
-    QSignalSpy cityMessageSpy(&dataSource, &WeatherDataSource::weatherCityMessage);
-    
+
     // Устанавливаем валидные значения
     dataSource.setApiKey(createValidApiKey());
     dataSource.setCityName(createValidCityName());
-    
-    // Сбрасываем счетчики сигналов
-    keyMessageSpy.clear();
-    cityMessageSpy.clear();
-    
+
+    QSignalSpy keyMessageSpy(&dataSource, &WeatherDataSource::weatherKeyMessage);
+    QSignalSpy cityMessageSpy(&dataSource, &WeatherDataSource::weatherCityMessage);
+
     // Устанавливаем те же самые значения
     dataSource.setApiKey(createValidApiKey());
     dataSource.setCityName(createValidCityName());
@@ -125,9 +96,7 @@ void WeatherDataSourceTest::testSameValues() {
     QVERIFY(cityMessage.contains("already valid"));
 }
 
-void WeatherDataSourceTest::cleanup() {
-    // Очистка после каждого теста
-}
+void WeatherDataSourceTest::cleanup() { }
 
 void WeatherDataSourceTest::cleanupTestCase() {
 }

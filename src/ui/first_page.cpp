@@ -1,28 +1,26 @@
-#include "first_page.hpp"
 #include <QFormLayout>
 #include <QFrame>
 #include <QGroupBox>
 #include <QRegularExpressionValidator>
+#include "first_page.hpp"
 
 FirstPage::FirstPage(QWidget *parent)
     : QWidget(parent)
     , m_apiKeyValid(false)
-    , m_cityNameValid(false)
-{
+    , m_cityNameValid(false) {
     setupUI();
     setupConnections();
     show();
 }
 
-void FirstPage::setupUI()
-{
-    // Настройка основного layout
+void FirstPage::setupUI() {
+    // ======Настройка основного layout======
     m_mainLayout = new QVBoxLayout(this);
     m_mainLayout->setSpacing(20);
     m_mainLayout->setContentsMargins(30, 30, 30, 30);
 
-    // Добавляем заголовок
-    QLabel *titleLabel = new QLabel("Настройка параметров погоды", this);
+    // Добавляем заголовок для программы
+    QLabel *titleLabel = new QLabel("Setting the weather parameters");
     titleLabel->setStyleSheet("QLabel { font-size: 18px; font-weight: bold; color: #333; }");
     titleLabel->setAlignment(Qt::AlignCenter);
     m_mainLayout->addWidget(titleLabel);
@@ -30,25 +28,26 @@ void FirstPage::setupUI()
     // Добавляем разделитель
     QFrame *separator = new QFrame();
     separator->setFrameShape(QFrame::HLine);
-    separator->setFrameShadow(QFrame::Sunken);
-    separator->setStyleSheet("background-color: #ccc;");
+    separator->setFrameShadow(QFrame::Plain);
+    separator->setStyleSheet("background-color: #333;");
     m_mainLayout->addWidget(separator);
 
-    // Секция для API ключа
-    QGroupBox *apiKeyGroup = new QGroupBox("API Key", this);
+    // ======Секция для API ключа======
+    QGroupBox *apiKeyGroup = new QGroupBox("API Key");
     QVBoxLayout *apiKeyLayout = new QVBoxLayout(apiKeyGroup);
 
-    // Надпись для API ключа
-    m_apiKeyLabel = new QLabel("Введите свой ключ API:", apiKeyGroup);
-    m_apiKeyLabel->setStyleSheet("QLabel { font-size: 14px; color: #555; }");
-    apiKeyLayout->addWidget(m_apiKeyLabel);
+    // Надпись
+    QLabel *apiKeyLabel = new QLabel("Enter your API key:", apiKeyGroup);
+    apiKeyLabel->setStyleSheet("QLabel { font-size: 14px; color: #333; }");
+    apiKeyLayout->addWidget(apiKeyLabel);
 
     // Layout для строки ввода и кнопки
     QHBoxLayout *apiKeyInputLayout = new QHBoxLayout();
-    
+
+    // Настройка строки ввода
     m_apiKeyLineEdit = new QLineEdit(apiKeyGroup);
-    m_apiKeyLineEdit->setPlaceholderText("Введите API ключ от OpenWeatherMap");
-    m_apiKeyLineEdit->setEchoMode(QLineEdit::Password); // Скрываем ввод для безопасности
+    m_apiKeyLineEdit->setPlaceholderText("Enter the API key from OpenWeather");
+    m_apiKeyLineEdit->setEchoMode(QLineEdit::Password);
     m_apiKeyLineEdit->setMinimumWidth(300);
     m_apiKeyLineEdit->setStyleSheet(
         "QLineEdit {"
@@ -61,8 +60,15 @@ void FirstPage::setupUI()
         "   border: 2px solid #4A90E2;"
         "}"
     );
-    
-    m_apiKeySaveButton = new QPushButton("Сохранить", apiKeyGroup);
+
+    // Установка валидатора для ввода
+    QRegularExpression apiKeyRegex("^[A-Za-z0-9]+$");
+    QValidator *apiKeyValidator = new QRegularExpressionValidator(apiKeyRegex);
+    m_apiKeyLineEdit->setValidator(apiKeyValidator);
+
+    // Настройки кнопки "Сохранить"
+    m_apiKeySaveButton = new QPushButton("Save", apiKeyGroup);
+    m_apiKeySaveButton->setEnabled(false);
     m_apiKeySaveButton->setStyleSheet(
         "QPushButton {"
         "   padding: 8px 20px;"
@@ -74,6 +80,12 @@ void FirstPage::setupUI()
         "}"
         "QPushButton:hover {"
         "   background-color: #357ABD;"
+        "}"
+        "QPushButton:pressed {"
+        "   background-color: #2c5d9e;"
+        "}"
+        "QPushButton:focus {"
+        "   outline: none;"
         "}"
         "QPushButton:disabled {"
         "   background-color: #cccccc;"
@@ -93,20 +105,21 @@ void FirstPage::setupUI()
 
     m_mainLayout->addWidget(apiKeyGroup);
 
-    // Секция для названия города
-    QGroupBox *cityNameGroup = new QGroupBox("Город", this);
+    // ======Секция для названия города======
+    QGroupBox *cityNameGroup = new QGroupBox("City Name");
     QVBoxLayout *cityNameLayout = new QVBoxLayout(cityNameGroup);
 
-    // Надпись для названия города
-    m_cityNameLabel = new QLabel("Введите название города:", cityNameGroup);
-    m_cityNameLabel->setStyleSheet("QLabel { font-size: 14px; color: #555; }");
-    cityNameLayout->addWidget(m_cityNameLabel);
+    // Надпись
+    QLabel *cityNameLabel = new QLabel("Enter your city name:", cityNameGroup);
+    cityNameLabel->setStyleSheet("QLabel { font-size: 14px; color: #555; }");
+    cityNameLayout->addWidget(cityNameLabel);
 
     // Layout для строки ввода и кнопки
     QHBoxLayout *cityNameInputLayout = new QHBoxLayout();
-    
+
+    // Настройка строки ввода
     m_cityNameLineEdit = new QLineEdit(cityNameGroup);
-    m_cityNameLineEdit->setPlaceholderText("Например: Moscow или New York");
+    m_cityNameLineEdit->setPlaceholderText("Example: Moscow or New York");
     m_cityNameLineEdit->setMinimumWidth(300);
     m_cityNameLineEdit->setStyleSheet(
         "QLineEdit {"
@@ -120,12 +133,14 @@ void FirstPage::setupUI()
         "}"
     );
     
-    // Установка валидатора для ввода названия города
+    // Установка валидатора для ввода
     QRegularExpression cityNameRegex("^[A-Za-z]+(?:[.,\\s\\-'][A-Za-z]+)*$");
-    QValidator *cityNameValidator = new QRegularExpressionValidator(cityNameRegex, this);
+    QValidator *cityNameValidator = new QRegularExpressionValidator(cityNameRegex);
     m_cityNameLineEdit->setValidator(cityNameValidator);
-    
-    m_cityNameSaveButton = new QPushButton("Сохранить", cityNameGroup);
+
+    // Настройки кнопки "Сохранить"
+    m_cityNameSaveButton = new QPushButton("Save", cityNameGroup);
+    m_cityNameSaveButton->setEnabled(false);
     m_cityNameSaveButton->setStyleSheet(
         "QPushButton {"
         "   padding: 8px 20px;"
@@ -137,6 +152,12 @@ void FirstPage::setupUI()
         "}"
         "QPushButton:hover {"
         "   background-color: #357ABD;"
+        "}"
+        "QPushButton:pressed {"
+        "   background-color: #2c5d9e;"
+        "}"
+        "QPushButton:focus {"
+        "   outline: none;"
         "}"
         "QPushButton:disabled {"
         "   background-color: #cccccc;"
@@ -156,21 +177,21 @@ void FirstPage::setupUI()
 
     m_mainLayout->addWidget(cityNameGroup);
 
-    //Блок для единиц измерений
-    QGroupBox *m_unitsGroupBox = new QGroupBox("Единицы измерения", this);
+    // ======Блок для единиц измерений======
+    QGroupBox *m_unitsGroupBox = new QGroupBox("Units of measurement");
     QVBoxLayout *unitsLayout = new QVBoxLayout(m_unitsGroupBox);
 
     // Описание
-    QLabel *unitsDescription = new QLabel("Выберите систему измерения для отображения данных:", m_unitsGroupBox);
+    QLabel *unitsDescription = new QLabel("Select the measurement system to display the data:", m_unitsGroupBox);
     unitsDescription->setStyleSheet("QLabel { font-size: 14px; color: #555; }");
     unitsLayout->addWidget(unitsDescription);
 
     // Создаем группу кнопок
-    m_unitsButtonGroup = new QButtonGroup(this);
+    m_unitsButtonGroup = new QButtonGroup();
 
     // Метрическая система (по умолчанию)
-    m_metricRadioButton = new QRadioButton("Метрическая система", m_unitsGroupBox);
-    m_metricRadioButton->setChecked(true);  // По умолчанию выбрана метрическая система
+    m_metricRadioButton = new QRadioButton("Metric system", m_unitsGroupBox);
+    m_metricRadioButton->setChecked(true);
     m_metricRadioButton->setStyleSheet(
         "QRadioButton {"
         "   font-size: 14px;"
@@ -180,10 +201,15 @@ void FirstPage::setupUI()
         "   width: 20px;"
         "   height: 20px;"
         "}"
+        "QRadioButton:focus {"
+        "   outline: none;"
+        "   border: 2px solid #4A90E2;"
+        "   border-radius: 4px;"
+        "}"
     );
 
-    // Имперская система (США)
-    m_imperialRadioButton = new QRadioButton("Имперская система", m_unitsGroupBox);
+    // Имперская система
+    m_imperialRadioButton = new QRadioButton("Imperial system", m_unitsGroupBox);
     m_imperialRadioButton->setStyleSheet(
         "QRadioButton {"
         "   font-size: 14px;"
@@ -192,6 +218,11 @@ void FirstPage::setupUI()
         "QRadioButton::indicator {"
         "   width: 20px;"
         "   height: 20px;"
+        "}"
+        "QRadioButton:focus {"
+        "   outline: none;"
+        "   border: 2px solid #4A90E2;"
+        "   border-radius: 4px;"
         "}"
     );
 
@@ -204,18 +235,27 @@ void FirstPage::setupUI()
     unitsLayout->addWidget(m_imperialRadioButton);
 
     // Добавляем пояснение
-    QLabel *unitsNote = new QLabel("Примечание: Этот выбор влияет на отображение температуры, скорости ветра и давления.", m_unitsGroupBox);
+    QLabel *unitsNote = new QLabel("Note: This selection affects the display of temperature, wind speed, and pressure.", m_unitsGroupBox);
     unitsNote->setStyleSheet("QLabel { font-size: 12px; color: #777; font-style: italic; padding: 5px 0; }");
     unitsNote->setWordWrap(true);
     unitsLayout->addWidget(unitsNote);
 
     m_mainLayout->addWidget(m_unitsGroupBox);
 
+    // ======Label для ошибок сети======
+    m_networkErrorLabel = new QLabel("");
+    m_networkErrorLabel->setWordWrap(true);
+    m_networkErrorLabel->setAlignment(Qt::AlignCenter);
+    m_networkErrorLabel->setMinimumHeight(30);
+    m_mainLayout->addWidget(m_networkErrorLabel);
+
+
     // Добавляем растягивающийся элемент
     m_mainLayout->addStretch();
 
+
     // Кнопка запроса погоды
-    m_requestWeatherButton = new QPushButton("Запросить погоду", this);
+    m_requestWeatherButton = new QPushButton("Request the weather");
     m_requestWeatherButton->setMinimumHeight(50);
     m_requestWeatherButton->setEnabled(false); // Изначально отключена
     m_requestWeatherButton->setStyleSheet(
@@ -230,6 +270,12 @@ void FirstPage::setupUI()
         "}"
         "QPushButton:hover {"
         "   background-color: #40A060;"
+        "}"
+        "QPushButton:pressed {"
+        "   background-color: #348548;"
+        "}"
+        "QPushButton:focus {"
+        "   outline: none;"
         "}"
         "QPushButton:disabled {"
         "   background-color: #cccccc;"
@@ -258,8 +304,7 @@ void FirstPage::setupUI()
     );
 }
 
-void FirstPage::setupConnections()
-{
+void FirstPage::setupConnections() {
     // Подключаем кнопки к слотам
     connect(m_apiKeySaveButton, &QPushButton::clicked,
             this, &FirstPage::onApiKeySaveClicked);
@@ -292,8 +337,7 @@ void FirstPage::setupConnections()
             this, &FirstPage::onCityNameSaveClicked);
 }
 
-void FirstPage::onApiKeySaveClicked()
-{
+void FirstPage::onApiKeySaveClicked() {
     QString apiKey = m_apiKeyLineEdit->text().trimmed();
     if (!apiKey.isEmpty()) {
         emit apiKeyChanged(apiKey);
@@ -302,8 +346,7 @@ void FirstPage::onApiKeySaveClicked()
     }
 }
 
-void FirstPage::onCityNameSaveClicked()
-{
+void FirstPage::onCityNameSaveClicked() {
     QString cityName = m_cityNameLineEdit->text().trimmed();
     if (!cityName.isEmpty()) {
         emit cityNameChanged(cityName);
@@ -313,36 +356,20 @@ void FirstPage::onCityNameSaveClicked()
 }
 
 void FirstPage::onUnitsSystemChanged() {
-    // Получаем ID выбранной кнопки
     int selectedId = m_unitsButtonGroup->checkedId();
-
     // 0 = метрическая, 1 = имперская
     bool isMetric = (selectedId == 0);
-
-    // Эмитируем сигнал с выбранной системой
     emit unitsSystemChanged(isMetric);
 }
 
 
-void FirstPage::onRequestWeatherClicked()
-{
+void FirstPage::onRequestWeatherClicked() {
     if (m_apiKeyValid && m_cityNameValid) {
         emit requestWeatherData();
     }
 }
 
-QString FirstPage::getApiKey() const
-{
-    return m_apiKeyLineEdit->text().trimmed();
-}
-
-QString FirstPage::getCityName() const
-{
-    return m_cityNameLineEdit->text().trimmed();
-}
-
-void FirstPage::showApiKeyValidationMessage(const QString &message, bool isValid)
-{
+void FirstPage::showApiKeyValidationMessage(const QString &message, bool isValid) {
     QString color = isValid ? "#50C878" : "#FF6B6B"; // Зеленый или красный
     m_apiKeyMessageLabel->setText(QString("<span style='color:%1;'>%2</span>").arg(color, message));
     m_apiKeyValid = isValid;
@@ -351,8 +378,7 @@ void FirstPage::showApiKeyValidationMessage(const QString &message, bool isValid
     enableWeatherRequestButton(m_apiKeyValid && m_cityNameValid);
 }
 
-void FirstPage::showCityNameValidationMessage(const QString &message, bool isValid)
-{
+void FirstPage::showCityNameValidationMessage(const QString &message, bool isValid) {
     QString color = isValid ? "#50C878" : "#FF6B6B"; // Зеленый или красный
     m_cityNameMessageLabel->setText(QString("<span style='color:%1;'>%2</span>").arg(color, message));
     m_cityNameValid = isValid;
@@ -361,18 +387,42 @@ void FirstPage::showCityNameValidationMessage(const QString &message, bool isVal
     enableWeatherRequestButton(m_apiKeyValid && m_cityNameValid);
 }
 
-bool FirstPage::isMetricSystem() const {
-    // Возвращает true, если выбрана метрическая система
-    return m_metricRadioButton->isChecked();
+void FirstPage::showNetworkError(const QString &message) {
+    m_networkErrorLabel->setText(message);
+    m_networkErrorLabel->setStyleSheet(
+        "QLabel {"
+        "   font-size: 12px;"
+        "   font-weight: bold;"
+        "   padding: 8px;"
+        "   margin: 5px 0;"
+        "   border-radius: 4px;"
+        "   background-color: #FFEBEE;"
+        "   color: #FF6B6B;"
+        "   border: 1px solid #FFCDD2;"
+        "}"
+    );
 }
 
-void FirstPage::enableWeatherRequestButton(bool enable)
-{
+void FirstPage::clearNetworkError() {
+    m_networkErrorLabel->clear();
+    m_networkErrorLabel->setStyleSheet(
+        "QLabel {"
+        "   font-size: 12px;"
+        "   padding: 8px;"
+        "   margin: 5px 0;"
+        "   border-radius: 4px;"
+        "   background-color: transparent;"
+        "   color: transparent;"
+        "}"
+    );
+}
+
+void FirstPage::enableWeatherRequestButton(bool enable) {
     m_requestWeatherButton->setEnabled(enable);
     
     if (enable) {
-        m_requestWeatherButton->setText("Запросить погоду");
+        m_requestWeatherButton->setText("Request the weather");
     } else {
-        m_requestWeatherButton->setText("Заполните поля");
+        m_requestWeatherButton->setText("Fill in the fields");
     }
 }

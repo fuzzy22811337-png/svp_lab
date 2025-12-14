@@ -1,3 +1,6 @@
+#include <QJsonObject>
+#include <QJsonDocument>
+#include <QJsonArray>
 #include "weather_data_source.hpp"
 
 void WeatherDataSource::handleParseReply(QNetworkReply *reply) {
@@ -14,29 +17,35 @@ void WeatherDataSource::handleParseReply(QNetworkReply *reply) {
     QJsonArray weatherArray = obj["weather"].toArray();
     QJsonObject objWeather = weatherArray.first().toObject();
     model.setDescription(objWeather["description"].toString());
-    model.setIconCode(objWeather["icon"].toString());
 
     QJsonObject objWind = obj["wind"].toObject();
     model.setWindSpeed(objWind["speed"].toDouble());
 
     model.setCityName(obj["name"].toString());
 
-    emit weatherDataReceived(model);
+    bool isMetric;
+    if (m_units == "metric") {
+        isMetric = true;
+    }else if (m_units == "imperial") {
+        isMetric = false;
+    }
+
+    emit weatherDataReceived(model, isMetric);
 }
 
 
-void WeatherDataSource::handleServerResponse(QNetworkReply *reply) {
+void WeatherDataSource::handleServerReply(QNetworkReply *reply) {
     if (reply->error() == QNetworkReply::NoError) {
         handleParseReply(reply);
         return;
     }
 
-    // Читаем ответ
     QByteArray responseData = reply->readAll();
     QJsonDocument doc = QJsonDocument::fromJson(responseData);
 
     if (doc.isNull() || !doc.isObject()) {
         emit errorOccurred("Invalid JSON response from server");
+        emit weatherDataMessage("Check your network");
         return;
     }
 
@@ -46,7 +55,6 @@ void WeatherDataSource::handleServerResponse(QNetworkReply *reply) {
     if (obj.contains("cod")) {
         int code = obj["cod"].toInt();
 
-        // Ошибка от API
         QString errorMessage;
         QString errorDescription;
 
@@ -56,13 +64,13 @@ void WeatherDataSource::handleServerResponse(QNetworkReply *reply) {
             case 400:
                 errorMessage = "Bad Request";
                 errorDescription = "Please check for typos and ensure all required query parameters are present";
-                /*m_apiKeyValid = false;
-                m_cityNameValid = false;*/
+                m_apiKeyValid = false;
+                m_cityNameValid = false;
                 break;
             case 401:
                 errorMessage = "Unauthorized. Invalid API key";
                 errorDescription = "Please check your API key";
-                //m_apiKeyValid = false;
+                m_apiKeyValid = false;
                 break;
             case 403:
                 errorMessage = "Forbidden. API access restricted";
@@ -71,7 +79,7 @@ void WeatherDataSource::handleServerResponse(QNetworkReply *reply) {
             case 404:
                 errorMessage = QString("City '%1' not found").arg(m_cityName);
                 errorDescription = "Please check the city name";
-                //m_cityNameValid = false;
+                m_cityNameValid = false;
                 break;
             case 429:
                 errorMessage = "API rate limit exceeded";
@@ -86,7 +94,8 @@ void WeatherDataSource::handleServerResponse(QNetworkReply *reply) {
                 break;
             default:
                 if (obj.contains("message")) {
-                    errorMessage = QString("API Error %1: %2").arg(code).arg(obj["message"].toString());
+                    errorMessage = QString("Error %1").arg(code);
+                    errorDescription = obj["message"].toString();
                 } else {
                     errorMessage = QString("API Error %1").arg(code);
                 }

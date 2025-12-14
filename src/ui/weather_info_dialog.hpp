@@ -8,12 +8,10 @@ class QPushButton;
 class QFrame;
 class QGroupBox;
 
-class WeatherInfoDialog : public QDialog
-{
+class WeatherInfoDialog : public QDialog {
     Q_OBJECT
 
 public:
-    // Добавляем параметр isMetric
     explicit WeatherInfoDialog(const WeatherModel &weatherModel, bool isMetric, QWidget *parent = nullptr);
     ~WeatherInfoDialog() override = default;
 
