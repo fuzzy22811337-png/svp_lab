@@ -1,38 +1,34 @@
 #include "repository.hpp"
 
-Repository::Repository(WeatherDataSource *datasource, QObject *parent):
+Repository::Repository(QObject *parent):
     QObject(parent),
-    m_datasource(datasource)
-{
-    if (!m_datasource) {
-        return;
-    }
+    m_datasource(new WeatherDataSource()) {
 
     // Подключаем сигналы от DataSource
     connect(m_datasource, &WeatherDataSource::weatherDataReceived,
-        this, &Repository::handleWeatherData);
+        this, &Repository::onWeatherDataReceived);
 
     connect(m_datasource, &WeatherDataSource::keyValidationPassed,
-        this, &Repository::handleKeyValidationPassed);
+        this, &Repository::onKeyValidationPassed);
     connect(m_datasource, &WeatherDataSource::cityValidationPassed,
-        this, &Repository::handleCityValidationPassed);
+        this, &Repository::onCityValidationPassed);
 
-    connect(m_datasource, &WeatherDataSource::weatherDataMessage,
-        this, &Repository::handleWeatherMessage);
-    connect(m_datasource, &WeatherDataSource::weatherKeyMessage,
-        this, &Repository::handleWeatherKeyMessage);
-    connect(m_datasource, &WeatherDataSource::weatherCityMessage,
-        this, &Repository::handleWeatherCityMessage);
+    connect(m_datasource, &WeatherDataSource::weatherMessage,
+        this, &Repository::onWeatherMessage);
+    connect(m_datasource, &WeatherDataSource::keyMessage,
+        this, &Repository::onKeyMessage);
+    connect(m_datasource, &WeatherDataSource::cityMessage,
+        this, &Repository::onCityMessage);
 
-    connect(m_datasource, &WeatherDataSource::errorOccurred,
-        this, &Repository::handleErrorOccurred);
+    connect(m_datasource, &WeatherDataSource::weatherErrorOccurred,
+        this, &Repository::onWeatherErrorOccurred);
     connect(m_datasource, &WeatherDataSource::keyErrorOccurred,
-        this, &Repository::handleKeyErrorOccurred);
+        this, &Repository::onKeyErrorOccurred);
     connect(m_datasource, &WeatherDataSource::cityErrorOccurred,
-        this, &Repository::handleCityErrorOccurred);
+        this, &Repository::onCityErrorOccurred);
 }
 
-void Repository::fetchWeatherData() {
+void Repository::requestWeatherData() {
     // Делегируем запрос DataSource
     emit weatherRequestStarted();
     m_datasource->requestWeatherData();
@@ -59,58 +55,58 @@ void Repository::setCityName(const QString &cityName) {
 }
 
 
-void Repository::handleWeatherData(const WeatherModel &model, bool isMetric) {
+void Repository::onWeatherDataReceived(const WeatherModel &model, bool isMetric) {
     m_currentWeather = model;
 
     // Эмитируем сигнал для UI
-    emit weatherDataReceivedSignal(model, isMetric);
+    emit weatherDataReceived(model, isMetric);
     emit weatherRequestCompleted(true, "Weather data received successfully");
     //emit dataChanged();
 
     emit infoMessage(QString("Weather data for %1 received").arg(model.getCityName()));
 }
 
-void Repository::handleKeyValidationPassed(const QString &successMessage) {
+void Repository::onKeyValidationPassed(const QString &successMessage) {
     m_apiKeyValid = true;
-    emit apiKeyValidationResult(true, successMessage);
+    emit keyValidationResult(true, successMessage);
     updateRequestButtonStatus();
 }
 
-void Repository::handleKeyErrorOccurred(const QString &errorMessage) {
+void Repository::onKeyErrorOccurred(const QString &errorMessage) {
     m_apiKeyValid = false;
-    emit apiKeyValidationResult(false, errorMessage);
+    emit keyValidationResult(false, errorMessage);
     updateRequestButtonStatus();
 }
 
-void Repository::handleWeatherKeyMessage(const QString &message) {
+void Repository::onKeyMessage(const QString &message) {
     emit infoMessage("API key: " + message);
 }
 
 
-void Repository::handleCityValidationPassed(const QString &successMessage) {
+void Repository::onCityValidationPassed(const QString &successMessage) {
     m_cityNameValid = true;
-    emit cityNameValidationResult(true, successMessage);
+    emit cityValidationResult(true, successMessage);
     updateRequestButtonStatus();
 }
 
-void Repository::handleCityErrorOccurred(const QString &errorMessage) {
+void Repository::onCityErrorOccurred(const QString &errorMessage) {
     m_cityNameValid = false;
-    emit cityNameValidationResult(false, errorMessage);
+    emit cityValidationResult(false, errorMessage);
     updateRequestButtonStatus();
 }
 
-void Repository::handleWeatherCityMessage(const QString &message) {
+void Repository::onCityMessage(const QString &message) {
     emit infoMessage("City name: " + message);
 }
 
 
-void Repository::handleErrorOccurred(const QString &errorMessage) {
+void Repository::onWeatherErrorOccurred(const QString &errorMessage) {
     // Общие ошибки (не связанные с валидацией)
     emit weatherRequestCompleted(false, errorMessage);
-    emit weatherErrorMessage("Response Error: " + errorMessage);
+    emit weatherErrorResult("Response Error: " + errorMessage);
 }
 
-void Repository::handleWeatherMessage(const QString &message) {
+void Repository::onWeatherMessage(const QString &message) {
     // Общие информационные сообщения
     emit infoMessage(message);
 }

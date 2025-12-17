@@ -44,8 +44,8 @@ void WeatherDataSource::handleServerReply(QNetworkReply *reply) {
     QJsonDocument doc = QJsonDocument::fromJson(responseData);
 
     if (doc.isNull() || !doc.isObject()) {
-        emit errorOccurred("Invalid JSON response from server");
-        emit weatherDataMessage("Check your network");
+        emit weatherErrorOccurred("Invalid JSON response from server");
+        emit weatherMessage("Check your network");
         return;
     }
 
@@ -101,11 +101,22 @@ void WeatherDataSource::handleServerReply(QNetworkReply *reply) {
                 }
         }
 
-        emit errorOccurred(errorMessage);
-        emit weatherDataMessage(errorDescription);
+        emit weatherErrorOccurred(errorMessage);
+        emit weatherMessage(errorDescription);
 
     } else {
-        emit errorOccurred("Strange answer (without cod)");
-        emit weatherDataMessage("Please try again");
+        emit weatherErrorOccurred("Strange answer (without cod)");
+        emit weatherMessage("Please try again");
+    }
+}
+
+void WeatherDataSource::handleCleanupReply(QNetworkReply *reply) {
+    if (m_currentReply) {
+        if (m_currentReply->isRunning()) {
+            m_currentReply->abort();
+        }
+
+        m_currentReply->deleteLater();
+        m_currentReply = nullptr;
     }
 }

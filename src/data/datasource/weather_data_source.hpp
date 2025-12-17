@@ -16,19 +16,18 @@ public:
 
     void setCityName(const QString &cityName);
     void setApiKey(const QString &apiKey);
-
     void isMetric(bool isMetric);
 
 signals:
     void weatherDataReceived(const WeatherModel &model, bool isMetric);
 
-    void errorOccurred(const QString &errorMessage);
+    void weatherErrorOccurred(const QString &errorMessage);
     void cityErrorOccurred(const QString &errorMessage);
     void keyErrorOccurred(const QString &errorMessage);
 
-    void weatherDataMessage(const QString &message);
-    void weatherCityMessage(const QString &message);
-    void weatherKeyMessage(const QString &message);
+    void weatherMessage(const QString &message);
+    void cityMessage(const QString &message);
+    void keyMessage(const QString &message);
 
     void cityValidationPassed(const QString &successMessage);
     void keyValidationPassed(const QString &successMessage);
@@ -37,11 +36,11 @@ private slots:
     void onWeatherDataReceived(QNetworkReply *reply);
 
 private:
-    bool validateApiKeyFormat(const QString &apiKey);
-    bool validateCityNameFormat(const QString &cityName);
+    bool validateKeyFormat(const QString &apiKey);
+    bool validateCityFormat(const QString &cityName);
     void handleParseReply(QNetworkReply *reply);
     void handleServerReply(QNetworkReply *reply);
-    void cleanupReply(QNetworkReply *reply);
+    void handleCleanupReply(QNetworkReply *reply);
 
     QNetworkAccessManager *m_networkManager = nullptr;
     QNetworkReply *m_currentReply = nullptr;

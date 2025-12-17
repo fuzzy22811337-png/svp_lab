@@ -37,7 +37,7 @@ void RepositoryTest::testSetApiKey() {
     WeatherDataSource* dataSource = new WeatherDataSource();
     Repository repo(dataSource);
 
-    QSignalSpy keyValidationSpy(&repo, &Repository::apiKeyValidationResult);
+    QSignalSpy keyValidationSpy(&repo, &Repository::keyValidationResult);
     QSignalSpy infoMessageSpy(&repo, &Repository::infoMessage);
 
     // Устанавливаем валидный API ключ
@@ -60,7 +60,7 @@ void RepositoryTest::testSetCityName() {
     WeatherDataSource* dataSource = new WeatherDataSource();
     Repository repo(dataSource);
 
-    QSignalSpy cityValidationSpy(&repo, &Repository::cityNameValidationResult);
+    QSignalSpy cityValidationSpy(&repo, &Repository::cityValidationResult);
     QSignalSpy infoMessageSpy(&repo, &Repository::infoMessage);
 
     // Устанавливаем валидный город
@@ -103,9 +103,9 @@ void RepositoryTest::testSignals() {
     Repository repo(dataSource);
 
     // Создаем шпионов для всех сигналов
-    QSignalSpy apiKeySpy(&repo, &Repository::apiKeyValidationResult);
-    QSignalSpy citySpy(&repo, &Repository::cityNameValidationResult);
-    QSignalSpy errorSpy(&repo, &Repository::weatherErrorMessage);
+    QSignalSpy apiKeySpy(&repo, &Repository::keyValidationResult);
+    QSignalSpy citySpy(&repo, &Repository::cityValidationResult);
+    QSignalSpy errorSpy(&repo, &Repository::weatherErrorResult);
     QSignalSpy infoSpy(&repo, &Repository::infoMessage);
 
     // Устанавливаем валидные данные

@@ -5,8 +5,7 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , m_firstPage(new FirstPage(this))
-    , m_dataSource(new WeatherDataSource(this))
-    , m_repository(new Repository(m_dataSource)){
+    , m_repository(new Repository()){
 
     // Настройка главного окна
     setWindowTitle("Weather Application");
@@ -39,21 +38,17 @@ void MainWindow::setupConnections(){
            m_repository, &Repository::isMetric);
 
     connect(m_firstPage, &FirstPage::requestWeatherData,
-            m_repository, &Repository::fetchWeatherData);
+            m_repository, &Repository::requestWeatherData);
 
     // ========== Repository -> MainWindow -> FirstPage ==========
-    connect(m_repository, &Repository::apiKeyValidationResult,
-            this, &MainWindow::onApiKeyValidationResult);
+    connect(m_repository, &Repository::keyValidationResult,
+            this, &MainWindow::onKeyValidationResult);
 
-    connect(m_repository, &Repository::cityNameValidationResult,
-            this, &MainWindow::onCityNameValidationResult);
+    connect(m_repository, &Repository::cityValidationResult,
+            this, &MainWindow::onCityValidationResult);
 
-    connect(m_repository, &Repository::weatherErrorMessage,
-            this, &MainWindow::onWeatherErrorNetworkResult);
-
-    // ========== Repository -> MainWindow ==========
-    connect(m_repository, &Repository::weatherDataReceivedSignal,
-            this, &MainWindow::onWeatherDataReceived);
+    connect(m_repository, &Repository::weatherErrorResult,
+            this, &MainWindow::onWeatherErrorResult);
 
     connect(m_repository, &Repository::weatherRequestStarted,
             this, &MainWindow::onWeatherRequestStarted);
@@ -61,21 +56,26 @@ void MainWindow::setupConnections(){
     connect(m_repository, &Repository::weatherRequestCompleted,
             this, &MainWindow::onWeatherRequestCompleted);
 
+    // ========== Repository -> MainWindow -> Dialog ==========
+    connect(m_repository, &Repository::weatherDataReceived,
+            this, &MainWindow::onWeatherDataReceived);
+
+    // ========== Repository -> MainWindow ==========
     connect(m_repository, &Repository::infoMessage,
             this, &MainWindow::onInfoMessage);
 }
 
-void MainWindow::onApiKeyValidationResult(bool isValid, const QString &message){
+void MainWindow::onKeyValidationResult(bool isValid, const QString &message){
     m_apiKeyValid = isValid;
     m_firstPage->showApiKeyValidationMessage(message, isValid);
 }
 
-void MainWindow::onCityNameValidationResult(bool isValid, const QString &message){
+void MainWindow::onCityValidationResult(bool isValid, const QString &message){
     m_cityNameValid = isValid;
     m_firstPage->showCityNameValidationMessage(message, isValid);
 }
 
-void MainWindow::onWeatherErrorNetworkResult(const QString &message) {
+void MainWindow::onWeatherErrorResult(const QString &message) {
     // Отображаем ошибку в FirstPage
     m_firstPage->showNetworkError(message);
 }

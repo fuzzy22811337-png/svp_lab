@@ -13,14 +13,14 @@ WeatherDataSource::WeatherDataSource(QObject *parent):
 
 void WeatherDataSource::requestWeatherData() {
     if (m_apiKey.isEmpty() || !m_apiKeyValid) {
-        emit(errorOccurred(
+        emit(weatherErrorOccurred(
             "Cannot request weather data: API key not set or invalid"
         ));
         return;
     }
 
     if (m_cityName.isEmpty() || !m_cityNameValid) {
-        emit(errorOccurred(
+        emit(weatherErrorOccurred(
             "Cannot request weather data: City name not set or invalid"
         ));
         return;
@@ -33,7 +33,7 @@ void WeatherDataSource::requestWeatherData() {
     .arg(m_apiKey);
     QUrl url (api_url);
 
-    emit weatherDataMessage(
+    emit weatherMessage(
         api_url
     );
 
@@ -46,37 +46,26 @@ void WeatherDataSource::requestWeatherData() {
 void WeatherDataSource::onWeatherDataReceived(QNetworkReply *reply) {
     handleServerReply(reply);
 
-    cleanupReply(reply);
-}
-
-void WeatherDataSource::cleanupReply(QNetworkReply *reply) {
-    if (m_currentReply) {
-        if (m_currentReply->isRunning()) {
-            m_currentReply->abort();
-        }
-
-        m_currentReply->deleteLater();
-        m_currentReply = nullptr;
-    }
+    handleCleanupReply(reply);
 }
 
 
 void WeatherDataSource::setCityName(const QString &cityName) {
 
     if (cityName == m_cityName && m_cityNameValid) {
-        emit weatherCityMessage(
+        emit cityMessage(
             "City name unchanged and already valid"
         );
         return;
     }
 
-    if (!validateCityNameFormat(cityName))
+    if (!validateCityFormat(cityName))
         return;
 
     QString oldCity = m_cityName;
     m_cityName = cityName;
 
-    emit weatherCityMessage(
+    emit cityMessage(
         QString( "City changed from %1 to %2")
         .arg(oldCity)
         .arg(m_cityName)
@@ -86,7 +75,7 @@ void WeatherDataSource::setCityName(const QString &cityName) {
 void WeatherDataSource::setApiKey(const QString &apiKey)
 {
     if (apiKey == m_apiKey && m_apiKeyValid) {
-        emit weatherKeyMessage(
+        emit keyMessage(
             "API key unchanged and already valid"
         );
         return;
@@ -95,13 +84,13 @@ void WeatherDataSource::setApiKey(const QString &apiKey)
     QString cleanedKey = apiKey.trimmed();
 
     // Валидация формата API ключа
-    if (!validateApiKeyFormat(cleanedKey))
+    if (!validateKeyFormat(cleanedKey))
         return;
 
     QString oldKey = m_apiKey;
     m_apiKey = cleanedKey;
 
-    emit weatherKeyMessage(
+    emit keyMessage(
         QString("API key changed from %1 to *****%2")
         .arg(oldKey.isEmpty() ? "empty" : "****" + oldKey.right(6))
         .arg(m_apiKey.right(6))
@@ -110,7 +99,7 @@ void WeatherDataSource::setApiKey(const QString &apiKey)
 
 void WeatherDataSource::isMetric(bool isMetric) {
     isMetric ? m_units = "metric": m_units = "imperial";
-    emit weatherDataMessage(
+    emit weatherMessage(
         QString("Units of measurement: Units changed to %1 and already valid")
         .arg(m_units)
     );

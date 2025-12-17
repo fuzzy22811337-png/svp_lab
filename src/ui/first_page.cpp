@@ -5,9 +5,7 @@
 #include "first_page.hpp"
 
 FirstPage::FirstPage(QWidget *parent)
-    : QWidget(parent)
-    , m_apiKeyValid(false)
-    , m_cityNameValid(false) {
+    : QWidget(parent) {
     setupUI();
     setupConnections();
     show();

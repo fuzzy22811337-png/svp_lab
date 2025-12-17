@@ -15,9 +15,9 @@ public:
 
 private slots:
     // Слоты для обработки сигналов репозитория
-    void onApiKeyValidationResult(bool isValid, const QString &message);
-    void onCityNameValidationResult(bool isValid, const QString &message);
-    void onWeatherErrorNetworkResult(const QString &message);
+    void onKeyValidationResult(bool isValid, const QString &message);
+    void onCityValidationResult(bool isValid, const QString &message);
+    void onWeatherErrorResult(const QString &message);
 
     void onWeatherDataReceived(const WeatherModel &model, bool isMetric);
 
@@ -31,10 +31,9 @@ private:
     void showWeatherInfo(const WeatherModel &model, bool isMetric);
     void closeWeatherInfo();
 
-    WeatherDataSource *m_dataSource;
     Repository *m_repository;
     FirstPage *m_firstPage;
-    WeatherInfoDialog *m_weatherDialog;
+    WeatherInfoDialog *m_weatherDialog = nullptr;
 
     bool m_apiKeyValid = false;
     bool m_cityNameValid = false;

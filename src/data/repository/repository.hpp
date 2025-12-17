@@ -9,40 +9,40 @@ class Repository : public QObject {
     Q_OBJECT
 
 public:
-    explicit Repository(WeatherDataSource *datasource, QObject *parent = nullptr);
+    explicit Repository(QObject *parent = nullptr);
     ~Repository() override = default;
 
-    void fetchWeatherData();
+    void requestWeatherData();
 
     void setApiKey(const QString &apiKey);
     void setCityName(const QString &cityName);
     void isMetric(bool isMetric);
 
 signals:
-    void apiKeyValidationResult(bool isValid, const QString &message);
-    void cityNameValidationResult(bool isValid, const QString &message);
+    void keyValidationResult(bool isValid, const QString &message);
+    void cityValidationResult(bool isValid, const QString &message);
 
-    void weatherErrorMessage(const QString &message);
+    void weatherErrorResult(const QString &message);
     void infoMessage(const QString &message);
 
-    void weatherDataReceivedSignal(const WeatherModel &model, bool isMetric);
+    void weatherDataReceived(const WeatherModel &model, bool isMetric);
 
     void weatherRequestStarted();
     void weatherRequestCompleted(bool success, const QString &message);
 
 private slots:
-    void handleKeyValidationPassed(const QString &successMessage);
-    void handleKeyErrorOccurred(const QString &errorMessage);
-    void handleWeatherKeyMessage(const QString &message);
+    void onKeyValidationPassed(const QString &successMessage);
+    void onKeyErrorOccurred(const QString &errorMessage);
+    void onKeyMessage(const QString &message);
 
-    void handleCityValidationPassed(const QString &successMessage);
-    void handleCityErrorOccurred(const QString &errorMessage);
-    void handleWeatherCityMessage(const QString &message);
+    void onCityValidationPassed(const QString &successMessage);
+    void onCityErrorOccurred(const QString &errorMessage);
+    void onCityMessage(const QString &message);
 
-    void handleWeatherData(const WeatherModel &model, bool isMetric);
+    void onWeatherDataReceived(const WeatherModel &model, bool isMetric);
 
-    void handleErrorOccurred(const QString &errorMessage);
-    void handleWeatherMessage(const QString &message);
+    void onWeatherErrorOccurred(const QString &errorMessage);
+    void onWeatherMessage(const QString &message);
 
 private:
     void updateRequestButtonStatus();

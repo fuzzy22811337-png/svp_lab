@@ -1,7 +1,7 @@
 #include <QRegularExpression>
 #include "weather_data_source.hpp"
 
-bool WeatherDataSource::validateApiKeyFormat(const QString &apiKey) {
+bool WeatherDataSource::validateKeyFormat(const QString &apiKey) {
     m_apiKeyValid = false;
 
     if (apiKey.isEmpty()) {
@@ -33,7 +33,7 @@ bool WeatherDataSource::validateApiKeyFormat(const QString &apiKey) {
         emit keyErrorOccurred(
             "API key contains invalid characters"
         );
-        emit weatherKeyMessage(
+        emit keyMessage(
             "Should contain only letters and numbers"
         );
         return false;
@@ -47,7 +47,7 @@ bool WeatherDataSource::validateApiKeyFormat(const QString &apiKey) {
 }
 
 
-bool WeatherDataSource::validateCityNameFormat(const QString &cityName) {
+bool WeatherDataSource::validateCityFormat(const QString &cityName) {
     m_cityNameValid = false;
 
     if (cityName.isEmpty()) {
@@ -63,7 +63,7 @@ bool WeatherDataSource::validateCityNameFormat(const QString &cityName) {
         emit cityErrorOccurred(
            "Invalid city name format"
         );
-        emit weatherCityMessage(
+        emit cityMessage(
             "Should contain only English letters, spaces(cannot be at the beginning or end), hyphens and apostrophes"
         );
         return false;

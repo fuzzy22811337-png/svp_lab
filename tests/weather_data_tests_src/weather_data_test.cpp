@@ -78,8 +78,8 @@ void WeatherDataSourceTest::testSameValues() {
     dataSource.setApiKey(createValidApiKey());
     dataSource.setCityName(createValidCityName());
 
-    QSignalSpy keyMessageSpy(&dataSource, &WeatherDataSource::weatherKeyMessage);
-    QSignalSpy cityMessageSpy(&dataSource, &WeatherDataSource::weatherCityMessage);
+    QSignalSpy keyMessageSpy(&dataSource, &WeatherDataSource::keyMessage);
+    QSignalSpy cityMessageSpy(&dataSource, &WeatherDataSource::cityMessage);
 
     // Устанавливаем те же самые значения
     dataSource.setApiKey(createValidApiKey());
